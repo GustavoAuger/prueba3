@@ -3,11 +3,14 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - master
+      - master  
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      AWS_REGION: 'us-east-1'  
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -17,23 +20,29 @@ jobs:
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
+        with:
+          region: ${{ env.AWS_REGION }}  
 
       - name: Build Docker image
         run: |
           docker build -t ${{ secrets.ECR_REPO }}:$GITHUB_SHA .
-        
+
       - name: Push Docker image to ECR
         run: |
-          docker tag ${{ secrets.ECR_REPO }}:$GITHUB_SHA ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO }}:$GITHUB_SHA
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO }}:$GITHUB_SHA
+          docker tag ${{ secrets.ECR_REPO }}:$GITHUB_SHA ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO }}:$GITHUB_SHA
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO }}:$GITHUB_SHA
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    env:
+      AWS_REGION: 'us-east-1'  
+
     steps:
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          cluster: ${{ secrets.ECS_CLUST }}
-          service: ${{ secrets.ECS_SERVICE }}
+          cluster: ${{ secrets.ECS_CLUST }} # Usando el ARN cluster
+          service: ${{ secrets.ECS_SERVICE }} # Usando el ARN del service
+          task-definition: ${{ secrets.ECS_TASK_DEF }}  # Usando el ARN de la task
           wait-for-service-stability: true
