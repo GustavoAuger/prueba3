@@ -36,5 +36,4 @@ jobs:
         with:
           cluster: ${{ secrets.ECS_CLUST }}
           service: ${{ secrets.ECS_SERVICE }}
-          task-definition: ${{ secrets.ECS_TASK_DEF }}
           wait-for-service-stability: true
