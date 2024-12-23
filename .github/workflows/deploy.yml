@@ -3,13 +3,13 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}  # Usamos la variable de entorno secreta AWS_REGION
+      AWS_REGION: ${{ secrets.AWS_REGION }}  
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
