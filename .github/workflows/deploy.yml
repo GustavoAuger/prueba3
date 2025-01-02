@@ -3,7 +3,7 @@ name: Despliegue en AWS
 on:
   push:
     branches:
-      - xmain
+      - master
 
 jobs:
   steps:
