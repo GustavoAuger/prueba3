@@ -48,18 +48,3 @@ jobs:
       - name: Push Docker image to ECR
         run: |
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO }}:latest
-
-      # Paso 8: Instalar script ecs-deploy
-      - name: Install ecs-deploy script
-        run: |
-          curl https://raw.githubusercontent.com/silinternational/ecs-deploy/master/ecs-deploy | sudo tee /usr/bin/ecs-deploy
-          sudo chmod +x /usr/bin/ecs-deploy
-
-      # Paso 9: Desplegar en Amazon ECS usando ecs-deploy
-      - name: Deploy to ECS using ecs-deploy
-        run: |
-          ecs-deploy \
-            --cluster ${{ secrets.ECS_CLUST }} \
-            --service-name ${{ secrets.ECS_SERVICE }} \
-            --image ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO }}:latest \
-            --force-new-deployment
