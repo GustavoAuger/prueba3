@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  despliegue EC2:
+  despliegue-EC2:
     name: Desplegar en ec2
     runs-on: ubuntu-latest
 
