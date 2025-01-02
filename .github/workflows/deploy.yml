@@ -3,7 +3,7 @@ name: Despliegue en AWS
 on:
   push:
     branches:
-      - master
+      - master2
 
 jobs:
   despliegue-EC2:
@@ -53,6 +53,12 @@ jobs:
           "
 
       # 6. Reiniciar la aplicación
+      - name: Verificar existencia de app.py
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "
+            ls /home/${{ secrets.EC2_USER }}/app/api/app.py
+          "
+
       - name: Reiniciar la aplicación
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "
