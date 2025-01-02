@@ -2,3 +2,7 @@
 /yarn.lock
 /.idea/
 .env
+.env
+venv/
+*.pyc
+__pycache__/

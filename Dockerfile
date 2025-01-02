@@ -1,18 +1,11 @@
-# Imagen base de Node.js 22
-FROM node:20-alpine
+# Usar una imagen base de Nginx
+FROM nginx:alpine
 
-# Configurar el directorio de trabajo dentro del contenedor
-WORKDIR /app
+# Copiar los archivos desde la carpeta 'landing' al directorio que Nginx usa para servir archivos
+COPY landing/ /usr/share/nginx/html/
 
-# Copiar el archivo package.json y realizar instalación de dependencias
-COPY package*.json ./
-RUN npm install
+# Exponer el puerto 80 para servir la página
+EXPOSE 80
 
-# Copiar el resto del código al contenedor
-COPY . .
-
-# Exponer el puerto 3000
-EXPOSE 3000
-
-# Comando para ejecutar la aplicación
-CMD ["npm", "start"]
+# Comando para ejecutar Nginx en primer plano
+CMD ["nginx", "-g", "daemon off;"]
