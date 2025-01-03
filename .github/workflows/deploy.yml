@@ -3,10 +3,10 @@ name: Pipeline Completo
 on:
   push:
     branches:
-      - master2 # Cambiar por la rama que desees
+      - master
   pull_request:
     branches:
-      - master2
+      - master
 
 jobs:
   terraform:
