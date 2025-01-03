@@ -100,3 +100,7 @@ module "ecr_prueba3" {
   environment     = "desarrollo"  
   region          = "us-east-1"  
 }
+
+output "ec2_public_ip" {
+  value = module.ec2.public_ip
+}
