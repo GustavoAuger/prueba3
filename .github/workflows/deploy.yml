@@ -44,6 +44,12 @@ jobs:
       - name: Aplicar cambios con Terraform
         run: terraform apply -auto-approve
 
+      # 7. Obtener la IP pública de la EC2
+      - name: Get EC2 Public IP
+        id: ec2_ip
+        run: |
+          echo "EC2_PUBLIC_IP=$(terraform output -raw public_ip)" >> $GITHUB_ENV
+
   despliegue-EC2:
     name: Desplegar en EC2
     runs-on: ubuntu-latest
@@ -64,15 +70,15 @@ jobs:
       # 3. Instalar dependencias en la instancia EC2
       - name: Configurar Python y dependencias
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@$EC2_PUBLIC_IP "
             sudo apt update && sudo apt upgrade -y && \
             sudo apt install -y python3 python3-venv python3-pip git
-          "
+          " 
 
       # 4. Clonar o actualizar el repositorio en la instancia EC2
       - name: Clonar o actualizar el repositorio
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@$EC2_PUBLIC_IP "
             if [ ! -d /home/${{ secrets.EC2_USER }}/app ]; then
               git clone https://github.com/GustavoAuger/prueba3 /home/${{ secrets.EC2_USER }}/app;
             else
@@ -83,7 +89,7 @@ jobs:
       # 5. Crear entorno virtual e instalar dependencias
       - name: Crear entorno virtual e instalar dependencias
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@$EC2_PUBLIC_IP "
             cd /home/${{ secrets.EC2_USER }}/app/api && \
             python3 -m venv venv && \
             source venv/bin/activate && \
@@ -94,13 +100,13 @@ jobs:
       # 6. Reiniciar la aplicación
       - name: Verificar existencia de app.py
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@$EC2_PUBLIC_IP "
             ls /home/${{ secrets.EC2_USER }}/app/api/app.py
           "
 
       - name: Reiniciar la aplicación
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_IP }} "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@$EC2_PUBLIC_IP "
             cd /home/${{ secrets.EC2_USER }}/app/api && \
             source venv/bin/activate && \
             nohup python3 app.py > app.log 2>&1 &
