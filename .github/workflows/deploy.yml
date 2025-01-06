@@ -3,7 +3,7 @@ name: Pipeline Completo
 on:
   push:
     branches:
-      - master
+      - master2
 
 jobs:
 

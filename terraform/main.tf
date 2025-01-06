@@ -1,6 +1,6 @@
 provider "aws" {
   region  = "us-east-1"
-  #profile = "gustavodev"  # Perfil configurado con las credenciales de AWS -- uso local
+  profile = "gustavodev"  # Perfil configurado con las credenciales de AWS -- uso local
 }
 
 terraform {
@@ -10,7 +10,7 @@ terraform {
     region         = "us-east-1"  # Región de tu bucket S3
     encrypt        = true  # Habilitar cifrado
     dynamodb_table = "terraform-lock-table"  # Tabla de DynamoDB para el bloqueo del estado
-    #profile        = "gustavodev" # Perfil configurado con las credenciales de AWS -- uso local
+    profile        = "gustavodev" # Perfil configurado con las credenciales de AWS -- uso local
   }
 }
 
