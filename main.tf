@@ -1,6 +1,6 @@
 provider "aws" {
   region  = "us-east-1"
-  #profile = "gustavodev"  # Perfil configurado con las credenciales de AWS uso local
+  profile = "gustavodev"  # Perfil configurado con las credenciales de AWS uso local
 }
 
 terraform {
@@ -10,7 +10,7 @@ terraform {
     region         = "us-east-1"  # Región de tu bucket S3
     encrypt        = true  # Habilitar cifrado
     dynamodb_table = "terraform-lock-table"  # Tabla de DynamoDB para el bloqueo del estado
-    #profile        = "gustavodev" # Perfil configurado con las credenciales de AWS uso local
+    profile        = "gustavodev" # Perfil configurado con las credenciales de AWS uso local
   }
 }
 
@@ -67,7 +67,7 @@ module "ec2_prueba3" {
   instance_type      = "t2.micro"
   public_subnet_id   = module.subnet_prueba3.subnet_publica_id
   security_group_id  = module.security_group_prueba3.sg_id  # Referencia al output del security group
-  name               = "ec2-prueba3"
+  name               = "ec2-prueba3" 
   key_name           = "EC2"  # Nombre del par de claves
   environment        = "desarrollo"
 }

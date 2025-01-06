@@ -3,9 +3,26 @@ name: Pipeline Completo
 on:
   workflow_dispatch:
 jobs:
+
+  scan-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install snyk
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk CLI
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Scan IaC code 
+        run: snyk iac test terraform/** --severity-threshold=high
+
   terraform:
     name: Configuración con Terraform
     runs-on: ubuntu-latest
+    needs: scan-terraform
 
     steps:
       # 1. Checkout del código
@@ -161,7 +178,23 @@ jobs:
         run: |
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO }}:latest .
 
-      # 7. Subir imagen a Amazon ECR
+      # 7. Escanear imagen 
+
+      - name: Escanear imagen Docker
+        run: |
+          snyk container test ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO }}:latest --severity-threshold=high
+      
+      # 8. Subir imagen a Amazon ECR    
+
       - name: Subir imagen a Amazon ECR
         run: |
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO }}:latest
+
+      # 9. Subir imagen a Amazon ECR  
+
+      - name: Escanear repositorio en ECR
+        run: |
+          aws ecr start-image-scan \
+            --repository-name ${{ secrets.ECR_REPO }} \
+            --image-id imageTag=latest
+
