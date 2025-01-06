@@ -3,10 +3,10 @@ name: Pipeline Completo
 on:
   push:
     branches:
-      - master
+      - master2
   pull_request:
     branches:
-      - master
+      - master2
 
 jobs:
   terraform:
@@ -44,73 +44,89 @@ jobs:
       - name: Aplicar cambios con Terraform
         run: terraform apply -auto-approve
 
-      # 7. Obtener la IP pública de la EC2
-      - name: Obtener la IP pública de la EC2
-        id: ec2_ip
-        run: |
-          # Extraer la IP pública de Terraform y limpiar caracteres no deseados
-          IP=$(terraform output -raw ec2_public_ip | tr -d '\r\n')
-          if [[ -z "$IP" ]]; then
-            echo "Error: No se pudo obtener la dirección IP pública de Terraform."
-            exit 1
-          fi
-          echo "EC2_PUBLIC_IP=$IP" >> $GITHUB_ENV
 
   despliegue-EC2:
     name: Desplegar en EC2
-    runs-on: ubuntu-latest
-    needs: terraform
+    runs-on: ubuntu-latest 
+    needs: terraform  
 
     steps:
+      # 1. Hacer checkout del código del repositorio
       - name: Checkout del código
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  
 
+      # 2. Obtener la dirección IP pública de la EC2
+      - name: Obtener dirección IP pública de EC2
+        id: obtener_ip_ec2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}  
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}  #
+          AWS_REGION: ${{ secrets.AWS_REGION }}  
+        run: |
+          # Comando para obtener la IP pública de la instancia EC2 usando su nombre de etiqueta
+          PUBLIC_IP=$(aws ec2 describe-instances --region $AWS_REGION --filters "Name=tag:Name,Values=server_prueba_dflatam" \
+            --query "Reservations[].Instances[].PublicIpAddress" --output text)
+          # Guardar la IP pública obtenida como variable de entorno para utilizarla en pasos posteriores.
+          echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
+
+      # 3. Configurar la clave SSH para la conexión con la EC2
       - name: Configurar clave SSH
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
-          chmod 400 ~/.ssh/id_rsa
+          mkdir -p ~/.ssh  # Crea el directorio ~/.ssh si no existe.
+          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa  # Guarda la clave privada SSH en el archivo id_rsa.
+          chmod 400 ~/.ssh/id_rsa  # Cambia los permisos del archivo de la clave para hacerlo seguro.
 
+      # 4. Instalar dependencias en la instancia EC2
       - name: Instalar dependencias en la instancia EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_PUBLIC_IP }} "
-            sudo apt update && sudo apt upgrade -y && \
-            sudo apt install -y python3 python3-venv python3-pip git
+          # Conecta a la EC2 usando SSH y ejecuta los comandos para instalar dependencias
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.PUBLIC_IP }} "
+            sudo apt update && sudo apt upgrade -y && \  # Actualiza el sistema.
+            sudo apt install -y python3 python3-venv python3-pip git  # Instala dependencias necesarias.
           " 
 
+      # 5. Clonar o actualizar el repositorio en la instancia EC2
       - name: Clonar o actualizar el repositorio
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_PUBLIC_IP }} "
-            if [ ! -d /home/${{ secrets.EC2_USER }}/app ]; then
-              git clone https://github.com/GustavoAuger/prueba3 /home/${{ secrets.EC2_USER }}/app;
+          # Conecta a la EC2 y clona el repositorio o actualiza el repositorio existente
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.PUBLIC_IP }} "
+            if [ ! -d /home/${{ secrets.EC2_USER }}/app ]; then  # Si no existe la carpeta app
+              git clone https://github.com/GustavoAuger/prueba3 /home/${{ secrets.EC2_USER }}/app;  # Clona el repositorio.
             else
-              cd /home/${{ secrets.EC2_USER }}/app && git pull;
+              cd /home/${{ secrets.EC2_USER }}/app && git pull;  # Si ya existe, actualiza el repositorio.
             fi
           "
 
+      # 6. Crear entorno virtual e instalar dependencias de Python
       - name: Crear entorno virtual e instalar dependencias
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_PUBLIC_IP }} "
+          # Conecta a la EC2, crea un entorno virtual y instala las dependencias de Python
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.PUBLIC_IP }} "
             cd /home/${{ secrets.EC2_USER }}/app/api && \
-            python3 -m venv venv && \
-            source venv/bin/activate && \
-            python3 -m pip install --upgrade pip && \
-            python3 -m pip install --no-cache-dir -r requirements.txt --break-system-packages
+            python3 -m venv venv && \  # Crea un entorno virtual llamado 'venv'.
+            source venv/bin/activate && \  # Activa el entorno virtual.
+            python3 -m pip install --upgrade pip && \  # Actualiza pip.
+            python3 -m pip install --no-cache-dir -r requirements.txt --break-system-packages  # Instala dependencias de Python.
           "
 
+      # 7. Verificar existencia de app.py en la instancia EC2
       - name: Verificar existencia de app.py
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_PUBLIC_IP }} "
-            ls /home/${{ secrets.EC2_USER }}/app/api/app.py
+          # Conecta a la EC2 y verifica que el archivo 'app.py' exista en el directorio especificado
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.PUBLIC_IP }} "
+            ls /home/${{ secrets.EC2_USER }}/app/api/app.py  # Muestra el archivo si existe.
           "
 
+      # 8. Reiniciar la aplicación en la EC2
       - name: Reiniciar la aplicación
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_PUBLIC_IP }} "
+          # Conecta a la EC2 y reinicia la aplicación en segundo plano
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.PUBLIC_IP }} "
             cd /home/${{ secrets.EC2_USER }}/app/api && \
-            source venv/bin/activate && \
-            nohup python3 app.py > app.log 2>&1 &
+            source venv/bin/activate && \  # Activa el entorno virtual.
+            nohup python3 app.py > app.log 2>&1 &  # Ejecuta la aplicación en segundo plano y guarda los logs.
           "
+
 
   ecr-push:
     name: Cargar imagen a ECR
