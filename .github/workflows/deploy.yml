@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      
+
 jobs:
 
   scan-terraform:
@@ -46,18 +46,13 @@ jobs:
         with:
           terraform_version: 1.5.0
 
-      # 4. Inicializar Terraform
-      - name: Inicializar Terraform
-        run: terraform init
-
-      # 5. Planificar los cambios
-      - name: Planificar cambios con Terraform
-        run: terraform plan
-
-      # 6. Aplicar cambios automáticamente
-      - name: Aplicar cambios con Terraform
-        run: terraform apply -auto-approve
-
+      # 4. Inicializar Terraform/Plan/Apply
+      - name: Aplicar cambios terraform
+        run: |
+          cd terraform/build_ec2
+          terraform init
+          terraform plan
+          terraform apply -auto-approve
 
   despliegue-EC2:
     name: Desplegar en EC2
@@ -193,7 +188,7 @@ jobs:
         run: |
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO }}:latest
 
-      # 9. Subir imagen a Amazon ECR  
+      # 9. Escanear imagen a Amazon ECR  
 
       - name: Escanear repositorio en ECR
         run: |
