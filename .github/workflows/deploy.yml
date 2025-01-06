@@ -60,13 +60,11 @@ jobs:
         id: obtener_ip_ec2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}  
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}  #
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}  
           AWS_REGION: ${{ secrets.AWS_REGION }}  
         run: |
-          # Comando para obtener la IP pública de la instancia EC2 usando su nombre de etiqueta
-          PUBLIC_IP=$(aws ec2 describe-instances --region $AWS_REGION --filters "Name=tag:Name,Values=server_prueba_dflatam" \
+          PUBLIC_IP=$(aws ec2 describe-instances --region $AWS_REGION --filters "Name=tag:Name,Values=ec2-prueba3" \
             --query "Reservations[].Instances[].PublicIpAddress" --output text)
-          # Guardar la IP pública obtenida como variable de entorno para utilizarla en pasos posteriores.
           echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
 
       # 3. Configurar la clave SSH para la conexión con la EC2
