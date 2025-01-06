@@ -178,6 +178,12 @@ jobs:
 
       # 7. Escanear imagen 
 
+      - name: Install snyk #instalación previa
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk CLI #autenticación
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
       - name: Escanear imagen Docker
         run: |
           snyk container test ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO }}:latest --severity-threshold=high
