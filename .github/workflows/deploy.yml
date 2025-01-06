@@ -49,8 +49,13 @@ jobs:
         id: ec2_ip
         run: |
           # Extraer la IP pública de Terraform y limpiar caracteres no deseados
-          IP=$(terraform output -raw ec2_public_ip | tr -d '\r')
+          IP=$(terraform output -raw ec2_public_ip | tr -d '\r\n')
+          if [[ -z "$IP" ]]; then
+            echo "Error: No se pudo obtener la dirección IP pública de Terraform."
+            exit 1
+          fi
           echo "EC2_PUBLIC_IP=$IP" >> $GITHUB_ENV
+
 
       # 8. Validar la IP pública
       - name: Validar la IP pública
