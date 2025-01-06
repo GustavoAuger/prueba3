@@ -54,7 +54,7 @@ jobs:
             echo "Error: No se pudo obtener la dirección IP pública de Terraform."
             exit 1
           fi
-          echo "EC2_PUBLIC_IP=$IP" >> $EC2_PUBLIC_IP
+          echo "EC2_PUBLIC_IP=$IP" >> $GITHUB_ENV
 
   despliegue-EC2:
     name: Desplegar en EC2
@@ -62,29 +62,25 @@ jobs:
     needs: terraform
 
     steps:
-      # 1. Checkout del código del repositorio
       - name: Checkout del código
         uses: actions/checkout@v3
 
-      # 2. Configurar la clave SSH para la conexión con la instancia
       - name: Configurar clave SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
           chmod 400 ~/.ssh/id_rsa
 
-      # 3. Instalar dependencias en la instancia EC2
-      - name: Configurar Python y dependencias
+      - name: Instalar dependencias en la instancia EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@$EC2_PUBLIC_IP "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_PUBLIC_IP }} "
             sudo apt update && sudo apt upgrade -y && \
             sudo apt install -y python3 python3-venv python3-pip git
           " 
 
-      # 4. Clonar o actualizar el repositorio en la instancia EC2
       - name: Clonar o actualizar el repositorio
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@$EC2_PUBLIC_IP "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_PUBLIC_IP }} "
             if [ ! -d /home/${{ secrets.EC2_USER }}/app ]; then
               git clone https://github.com/GustavoAuger/prueba3 /home/${{ secrets.EC2_USER }}/app;
             else
@@ -92,10 +88,9 @@ jobs:
             fi
           "
 
-      # 5. Crear entorno virtual e instalar dependencias
       - name: Crear entorno virtual e instalar dependencias
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@$EC2_PUBLIC_IP "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_PUBLIC_IP }} "
             cd /home/${{ secrets.EC2_USER }}/app/api && \
             python3 -m venv venv && \
             source venv/bin/activate && \
@@ -103,16 +98,15 @@ jobs:
             python3 -m pip install --no-cache-dir -r requirements.txt --break-system-packages
           "
 
-      # 6. Reiniciar la aplicación
       - name: Verificar existencia de app.py
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@$EC2_PUBLIC_IP "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_PUBLIC_IP }} "
             ls /home/${{ secrets.EC2_USER }}/app/api/app.py
           "
 
       - name: Reiniciar la aplicación
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@$EC2_PUBLIC_IP "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_PUBLIC_IP }} "
             cd /home/${{ secrets.EC2_USER }}/app/api && \
             source venv/bin/activate && \
             nohup python3 app.py > app.log 2>&1 &
