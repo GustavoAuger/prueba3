@@ -68,62 +68,11 @@ jobs:
           echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
 
       # 3. Configurar la clave SSH para la conexión con la EC2
-      - name: Configurar clave SSH xx
+      - name: Configurar clave SSH
         run: |
           mkdir -p ~/.ssh  # Crea el directorio ~/.ssh si no existe.
           echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa  # Guarda la clave privada SSH en el archivo id_rsa.
           chmod 400 ~/.ssh/id_rsa  # Cambia los permisos del archivo de la clave para hacerlo seguro.
-
-      # 4. Instalar dependencias en la instancia EC2
-      - name: Instalar dependencias en la instancia EC2
-        run: |
-          # Conecta a la EC2 usando SSH y ejecuta los comandos para instalar dependencias
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.PUBLIC_IP }} "
-            sudo apt update && sudo apt upgrade -y && \  # Actualiza el sistema.
-            sudo apt install -y python3 python3-venv python3-pip git  # Instala dependencias necesarias.
-          " 
-
-      # 5. Clonar o actualizar el repositorio en la instancia EC2
-      - name: Clonar o actualizar el repositorio
-        run: |
-          # Conecta a la EC2 y clona el repositorio o actualiza el repositorio existente
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.PUBLIC_IP }} "
-            if [ ! -d /home/${{ secrets.EC2_USER }}/app ]; then  # Si no existe la carpeta app
-              git clone https://github.com/GustavoAuger/prueba3 /home/${{ secrets.EC2_USER }}/app;  # Clona el repositorio.
-            else
-              cd /home/${{ secrets.EC2_USER }}/app && git pull;  # Si ya existe, actualiza el repositorio.
-            fi
-          "
-
-      # 6. Crear entorno virtual e instalar dependencias de Python
-      - name: Crear entorno virtual e instalar dependencias
-        run: |
-          # Conecta a la EC2, crea un entorno virtual y instala las dependencias de Python
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.PUBLIC_IP }} "
-            cd /home/${{ secrets.EC2_USER }}/app/api && \
-            python3 -m venv venv && \  # Crea un entorno virtual llamado 'venv'.
-            source venv/bin/activate && \  # Activa el entorno virtual.
-            python3 -m pip install --upgrade pip && \  # Actualiza pip.
-            python3 -m pip install --no-cache-dir -r requirements.txt --break-system-packages  # Instala dependencias de Python.
-          "
-
-      # 7. Verificar existencia de app.py en la instancia EC2
-      - name: Verificar existencia de app.py
-        run: |
-          # Conecta a la EC2 y verifica que el archivo 'app.py' exista en el directorio especificado
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.PUBLIC_IP }} "
-            ls /home/${{ secrets.EC2_USER }}/app/api/app.py  # Muestra el archivo si existe.
-          "
-
-      # 8. Reiniciar la aplicación en la EC2
-      - name: Reiniciar la aplicación
-        run: |
-          # Conecta a la EC2 y reinicia la aplicación en segundo plano
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.PUBLIC_IP }} "
-            cd /home/${{ secrets.EC2_USER }}/app/api && \
-            source venv/bin/activate && \  # Activa el entorno virtual.
-            nohup python3 app.py > app.log 2>&1 &  # Ejecuta la aplicación en segundo plano y guarda los logs.
-          "
 
 
   ecr-push:
