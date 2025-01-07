@@ -1,6 +1,6 @@
 # 🚀 Proyecto Infraestructura y Despliegue Automatizado con Terraform y GitHub Actions 🚀  
 
-Este proyecto tiene como objetivo principal implementar una infraestructura en la nube utilizando Terraform y automatizar su despliegue mediante GitHub Actions. Además, incluye una API sencilla en Flask y una aplicación de ejemplo para Docker con HTML, CSS y JavaScript.
+Este proyecto tiene como objetivo principal implementar una infraestructura en la nube utilizando **Terraform** y automatizar su despliegue mediante **GitHub Actions**. Además, incluye una API sencilla en **Flask** y una aplicación de ejemplo para Docker con HTML, CSS y JavaScript. Para garantizar la seguridad de la infraestructura y las aplicaciones, se integró **Snyk**, una herramienta que analiza posibles vulnerabilidades en el código y en las imágenes Docker, asegurando que todos los recursos sean seguros antes de su despliegue.
 
 # 📑 Tabla de Contenidos
 
@@ -20,7 +20,12 @@ Este proyecto tiene como objetivo principal implementar una infraestructura en l
 
 ## 🌟 Descripción General
 
-El proyecto se centra en la creación y despliegue de una infraestructura robusta y segura para aplicaciones basadas en contenedores. Se utilizaron prácticas modernas de IaC (Infrastructure as Code) con Terraform, junto con pipelines CI/CD configurados en GitHub Actions para garantizar un flujo de trabajo ágil, seguro y automatizado.
+El proyecto se centra en la creación y despliegue de una infraestructura robusta y segura para aplicaciones basadas en contenedores. Se utilizaron prácticas modernas de **IaC (Infrastructure as Code)** con **Terraform**, junto con pipelines **CI/CD** configurados en **GitHub Actions** para garantizar un flujo de trabajo ágil, seguro y automatizado.
+
+Para asegurar la calidad y la seguridad de la infraestructura, se implementó **Snyk**, una herramienta de análisis de vulnerabilidades, que permite detectar configuraciones inseguras y vulnerabilidades tanto en el código como en las imágenes Docker utilizadas en el proyecto. Esto garantiza que la infraestructura y las aplicaciones estén protegidas desde el inicio del ciclo de vida del desarrollo.
+
+La combinación de estas tecnologías permite un despliegue ágil y seguro de los recursos en la nube, asegurando la integridad y seguridad de las aplicaciones contenidas a lo largo de todo el proceso.
+
 
 ---
 
